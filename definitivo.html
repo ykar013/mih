@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jogo Hello Kitty — Presente</title>
+<style>
+:root{--pink:#ff6fb5;--rose:#ff4b9a;--light:#fff6fb;--card:#fff;--accent:#ffd1e8;--shadow:rgba(150,30,80,0.12)}
+*{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Helvetica Neue', Arial}
+html,body{height:100%}
+body{margin:0;background:radial-gradient(circle at 10% 10%, #fff7fb 0%, #ffeef8 30%, #fff 100%);display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);overflow:hidden}
+.stage{width:420px;max-width:96%;background:linear-gradient(180deg,rgba(255,255,255,0.95),#fff);border-radius:22px;padding:18px 18px 28px;box-shadow:0 18px 40px var(--shadow);position:relative;overflow:hidden;border:1px solid rgba(255,200,230,0.6)}
+header{display:flex;gap:12px;align-items:center;flex-direction:column;position:relative}
+.logo{width:64px;height:64px;border-radius:14px;background:linear-gradient(180deg,#fff,#ffd9ef);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 6px 18px rgba(255,120,180,0.12);animation:float 3.5s ease-in-out infinite}
+.gif-container{
+  width:90px;height:90px;
+  position:absolute;top:10px;
+}
+.gif-left{left:10px;}
+.gif-right{right:10px;}
+.gif-container img{width:100%;height:100%;object-fit:contain}
+h1{font-size:18px;margin:0;color:#b3006b}
+p.lead{margin:6px 0 12px;color:#8a2b5a;font-size:13px}
+.bg-bow{position:absolute;right:-10%;top:-8%;opacity:0.18;transform:rotate(-18deg);width:350px;height:350px;pointer-events:none}
+.cards{display:flex;gap:10px;justify-content:center;margin:12px 0 6px}
+.card{width:78px;height:126px;border-radius:14px;background:linear-gradient(180deg,#fff,#fff8fb);box-shadow:0 10px 22px rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.2,.9,.3,1), box-shadow .2s}
+.card:active{transform:translateY(6px)}
+.card:hover{transform:translateY(-6px) scale(1.02);box-shadow:0 18px 30px rgba(200,50,120,0.08)}
+.card .front,.card .back{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:36px;border-radius:inherit}
+.card .back{backface-visibility:hidden;transform:rotateY(180deg)}
+.card.flipped{transform:rotateY(180deg)}
+.info{font-size:13px;color:#6a2350;text-align:center;margin-bottom:6px}
+.small{font-size:12px;color:#92506f}
+.question{display:none;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.6),rgba(255,240,250,0.6));border:1px solid rgba(255,200,230,0.6);margin-top:8px}
+.question.active{display:flex}
+input[type=text]{padding:12px;border-radius:12px;border:1px solid #ffd6eb;background:#fff;font-size:15px}
+button{background:linear-gradient(180deg,var(--pink),var(--rose));border:none;color:white;padding:12px 14px;border-radius:14px;font-weight:700;cursor:pointer;font-size:15px}
+button.ghost{background:transparent;border:1px dashed #ffb6d7;color:#a10060}
+.note{font-size:12px;color:#9b4a74}
+.falling-heart{position:absolute;top:-40px;pointer-events:none;font-size:20px;z-index:9999;transform-origin:center;opacity:1;animation-name:fall;animation-timing-function:linear;animation-iteration-count:1}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:0.1}}
+@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- Hello Kitty esquerda -->
+  <div class="gif-container gif-left">
+    <img src="hello kitty 2.gif" alt="Hello Kitty 2">
+  </div>
+
+  <!-- Hello Kitty direita -->
+  <div class="gif-container gif-right">
+    <img src="hello kitty.gif" alt="Hello Kitty 2">
+  </div>
+
+  <svg class="bg-bow" viewBox="0 0 200 200" aria-hidden="true"><g fill="#ffb6d7"><ellipse cx="50" cy="60" rx="38" ry="26" transform="rotate(-20 50 60)"/><ellipse cx="150" cy="60" rx="38" ry="26" transform="rotate(20 150 60)"/><circle cx="100" cy="78" r="16" fill="#ff6fb5"/></g></svg>
+  <header>
+    <div class="logo">🎀</div>
+    <h1>presente para minha neguinha — mini presente de Aniversário</h1>
+    <p class="lead">escolha uma carta — 4 jokers e 1 carta certa, boa sorte!</p>
+  </header>
+  <div class="info">Toque numa carta. se acertar, aparecerá uma pergunta especial.</div>
+  <div class="cards" id="cards"></div>
+  <div class="question" id="questionArea">
+    <div class="small">calma amor, so responde isso e vai ter sua recompesa</div>
+    <div style="font-weight:800">Qual foi a data quando a gente voltou a ter contato? (?? de setembro)</div>
+    <input id="answerInput" placeholder="ex: vc sabe, tenho certeza" inputmode="numeric" aria-label="Resposta" />
+    <div style="display:flex;gap:8px">
+      <button id="checkAnswer">Confirmar</button>
+      <button class="ghost" id="restartBtn">Reiniciar</button>
+    </div>
+  </div>
+  <div class="question" id="pixArea">
+    <div class="small">Área para inserir CHAVE PIX</div>
+    <input id="pixInput" placeholder="Chave Pix" aria-label="Pix" />
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button id="savePix">Confirmar</button>
+      <button class="ghost" id="clearPix">Limpar</button>
+    </div>
+    <div class="note">Tudo fica localmente no navegador, não envia para servidor (obs: o dinheiro so cai segunda, 30$KKKKK)</div>
+    <div id="pixSaved" style="margin-top:8px;font-weight:700;color:#5a1a4b"></div>
+  </div>
+<script>
+let correctIndex=null, attempts=0;
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function makeCards(){
+  const cardsEl=document.getElementById('cards'); cardsEl.innerHTML='';
+  const types=shuffle(['coringa','coringa','coringa','coringa','carta']);
+  correctIndex=types.indexOf('carta'); attempts=0;
+  types.forEach((t,i)=>{
+    const el=document.createElement('button'); el.className='card'; el.dataset.index=i;
+    const front=document.createElement('div'); front.className='front'; front.innerHTML='❓';
+    const back=document.createElement('div'); back.className='back'; back.innerHTML=(t==='coringa')?'🃏':'⭐';
+    el.append(front,back);
+    el.addEventListener('click',()=>onCardClick(el,t,i));
+    cardsEl.appendChild(el);
+  });
+}
+function onCardClick(el,type,i){
+  if(el.classList.contains('flipped')) return; el.classList.add('flipped'); attempts++;
+  if(type==='coringa'){setTimeout(()=>{alert('joker papai, vamos de novo'); makeCards(); hideAllExtra();},500); return;}
+  if(i===correctIndex){setTimeout(()=>{showQuestion();},500); return;}
+  setTimeout(()=>{if(attempts===1){showQuestion();}else{alert('vish, sinto muito mas reiniciando'); location.reload();}},500);
+}
+function showQuestion(){document.getElementById('questionArea').classList.add('active');}
+function hideAllExtra(){document.getElementById('questionArea').classList.remove('active'); document.getElementById('pixArea').classList.remove('active');}
+makeCards();
+document.getElementById('checkAnswer').addEventListener('click',()=>{
+  const val=document.getElementById('answerInput').value.trim();
+  if(val==='1'||val==='01'){
+    document.getElementById('questionArea').classList.remove('active');
+    document.getElementById('pixArea').classList.add('active');
+  }else{alert('Resposta errada! Reiniciando'); location.reload();}
+});
+document.getElementById('restartBtn').addEventListener('click',()=>location.reload());
+document.getElementById('savePix').addEventListener('click',()=>{
+  const v=document.getElementById('pixInput').value.trim();
+  if(!v){alert('Digite algo.'); return;}
+  localStorage.setItem('pix_simulado',v);
+  document.getElementById('pixSaved').textContent='Salvo localmente: '+v;
+});
+document.getElementById('clearPix').addEventListener('click',()=>{
+  document.getElementById('pixInput').value='';
+  localStorage.removeItem('pix_simulado');
+  document.getElementById('pixSaved').textContent='';
+});
+function spawnHeart(){
+  const heart=document.createElement('div'); heart.className='falling-heart'; heart.textContent='❤';
+  heart.style.left=Math.random()*100+'vw'; heart.style.fontSize=(14+Math.random()*20)+'px';
+  heart.style.color=Math.random()<0.5?'#000000':'#0066ff';
+  heart.style.animationDuration=(3000+Math.random()*3000)+'ms';
+  document.body.appendChild(heart);
+  setTimeout(()=>heart.remove(),6500);
+}
+setInterval(spawnHeart,150);
+</script>
+</div>
+</body>
+</html>
